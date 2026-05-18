@@ -1,7 +1,8 @@
 node_modules/
 dist/
 release/
-.claude/
+.claude/*
+!.claude/skills/
 .superpowers/
 *.log
 .env
