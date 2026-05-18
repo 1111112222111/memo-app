@@ -1,4 +1,6 @@
-const { app, ipcMain, globalShortcut, nativeTheme } = require('electron');
+const { app, ipcMain, globalShortcut, nativeTheme, clipboard, nativeImage } = require('electron');
+const path = require('path');
+const fs = require('fs');
 const { WindowManager } = require('./WindowManager');
 const { TrayManager } = require('./TrayManager');
 const { HotkeyService } = require('./HotkeyService');
@@ -32,12 +34,22 @@ app.whenReady().then(() => {
     hotkeyService = new HotkeyService(windowManager, settingsService.getAll().hotkey);
     console.log('[Memo] 全局快捷键已注册');
 
-    clipboardService = new ClipboardService();
-    clipboardService.setCallback((text: string) => {
+    const imageDir = path.join(app.getPath('userData'), 'images');
+    clipboardService = new ClipboardService(imageDir);
+    clipboardService.setTextCallback((text: string) => {
       const memo = storeService.add(text, 'clipboard');
-      // 通知渲染进程新记录
       if (windowManager['window']) {
         windowManager['window'].webContents.send('memo:added', memo);
+      }
+    });
+    clipboardService.setImageCallback((imagePath: string) => {
+      const filename = path.basename(imagePath);
+      const memo = storeService.add(filename, 'image');
+      // 用 update 注入 imagePath（add 接口不直接支持 imagePath）
+      storeService.update(memo.id, { imagePath } as any);
+      const updated = storeService.getAll().find((m: any) => m.id === memo.id);
+      if (windowManager['window']) {
+        windowManager['window'].webContents.send('memo:added', updated);
       }
     });
     if (settingsService.getAll().clipboardEnabled) {
@@ -90,6 +102,28 @@ app.whenReady().then(() => {
     // === 主题 IPC ===
     ipcMain.handle('theme:getSystem', () => {
       return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+    });
+
+    // === 复制到剪贴板 IPC ===
+    ipcMain.handle('clipboard:copyText', (_e: any, text: string) => {
+      clipboard.writeText(text);
+    });
+    ipcMain.handle('clipboard:copyImage', (_e: any, imagePath: string) => {
+      if (fs.existsSync(imagePath)) {
+        const img = nativeImage.createFromPath(imagePath);
+        clipboard.writeImage(img);
+      }
+    });
+
+    // === 读取图片为 base64（渲染进程无法直接读取本地文件） ===
+    ipcMain.handle('memo:readImage', (_e: any, imagePath: string) => {
+      if (fs.existsSync(imagePath)) {
+        const buf = fs.readFileSync(imagePath);
+        const ext = path.extname(imagePath).slice(1);
+        const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+        return `data:${mime};base64,${buf.toString('base64')}`;
+      }
+      return null;
     });
 
     console.log('[Memo] 启动完成');

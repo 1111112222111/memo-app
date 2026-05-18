@@ -33,6 +33,7 @@ export const FILTER_LABELS: Record<string, string> = {
   todo: '待办',
   text: '文字',
   clipboard: '剪贴板',
+  image: '图片',
 };
 
 export function formatTime(timestamp: number): string {

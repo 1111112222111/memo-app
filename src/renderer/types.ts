@@ -9,10 +9,13 @@ declare global {
       delete: (id: string) => Promise<boolean>;
       togglePin: (id: string) => Promise<Memo | null>;
       toggleDone: (id: string) => Promise<Memo | null>;
+      readImage: (imagePath: string) => Promise<string | null>;
       getSettings: () => Promise<Settings>;
       updateSettings: (partial: Partial<Settings>) => Promise<Settings>;
       getClipboardEnabled: () => Promise<boolean>;
       setClipboardEnabled: (enabled: boolean) => Promise<void>;
+      copyText: (text: string) => Promise<void>;
+      copyImage: (imagePath: string) => Promise<void>;
       setPinned: (pinned: boolean) => Promise<boolean>;
       isPinned: () => Promise<boolean>;
       setBgColor: (color: string) => Promise<void>;
@@ -27,7 +30,8 @@ declare global {
 export interface Memo {
   id: string;
   content: string;
-  type: 'link' | 'todo' | 'text' | 'clipboard';
+  type: 'link' | 'todo' | 'text' | 'clipboard' | 'image';
+  imagePath?: string;
   createdAt: number;
   pinned: boolean;
   done: boolean;
@@ -39,4 +43,4 @@ export interface Settings {
   clipboardEnabled: boolean;
 }
 
-export type FilterType = 'all' | 'link' | 'todo' | 'text' | 'clipboard';
+export type FilterType = 'all' | 'link' | 'todo' | 'text' | 'clipboard' | 'image';

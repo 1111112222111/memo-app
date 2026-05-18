@@ -10,13 +10,13 @@ import imgSettings from './assets/icons/settings.png';
 import imgCheck from './assets/icons/check.png';
 import imgUndo from './assets/icons/undo.png';
 import imgDelete from './assets/icons/delete.png';
+import imgCopy from './assets/icons/copy.png';
 
 const api = window.memoAPI;
 
 function applyTheme(theme: Settings['theme']) {
   const apply = (resolved: 'dark' | 'light') => {
     document.documentElement.setAttribute('data-theme', resolved);
-    // 同步窗口背景色，避免主题切换时露白/露黑
     api.setBgColor(resolved === 'dark' ? '#1a1a2e' : '#f5f5f8');
   };
   if (theme === 'system') {
@@ -50,12 +50,10 @@ export default function App() {
       inputRef.current?.blur();
     });
 
-    // 监听剪贴板新增的记录
     const unsubClip = api.onMemoAdded((memo: Memo) => {
       setMemos(prev => [memo, ...prev]);
     });
 
-    // 监听系统主题变化
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const onSysThemeChange = () => {
       api.getSettings().then(s => {
@@ -150,10 +148,9 @@ export default function App() {
     .slice(0, 50);
 
   const filters: FilterType[] = clipboardOn
-    ? ['all', 'link', 'todo', 'text', 'clipboard']
+    ? ['all', 'link', 'todo', 'text', 'clipboard', 'image']
     : ['all', 'link', 'todo', 'text'];
 
-  // 设置面板
   if (showSettings) {
     return (
       <div className="panel">
@@ -167,7 +164,6 @@ export default function App() {
 
   return (
     <div className="panel">
-      {/* 顶部工具栏 */}
       <div className="panel-header">
         {clipboardOn && (
           <span className="header-btn header-btn-active" data-tooltip="剪贴板监听中">
@@ -227,6 +223,8 @@ export default function App() {
           <div className="empty-hint">
             {filter === 'clipboard'
               ? '暂无内容，复制内容后自动记录'
+              : filter === 'image'
+              ? '暂无图片，复制图片后自动记录'
               : '暂无记录，输入内容后按 Enter 保存'}
           </div>
         ) : (
@@ -260,15 +258,31 @@ function MemoItem({
   onChangeType: (id: string, type: Memo['type']) => void;
 }) {
   const [showActions, setShowActions] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (memo.type === 'image' && memo.imagePath) {
+      api.readImage(memo.imagePath).then(setImageSrc);
+    }
+  }, [memo.imagePath, memo.type]);
+
+  const handleCopy = useCallback(async () => {
+    if (memo.type === 'image' && memo.imagePath) {
+      await api.copyImage(memo.imagePath);
+    } else {
+      await api.copyText(memo.content);
+    }
+  }, [memo]);
 
   const typeColors: Record<string, string> = {
     link: 'var(--danger)',
     todo: 'var(--warning)',
     text: 'var(--info)',
     clipboard: 'var(--text-muted)',
+    image: '#72c97b',
   };
 
-  const types: Memo['type'][] = ['link', 'todo', 'text', 'clipboard'];
+  const types: Memo['type'][] = ['link', 'todo', 'text', 'clipboard', 'image'];
 
   return (
     <div
@@ -282,9 +296,13 @@ function MemoItem({
           style={{ background: typeColors[memo.type] }}
           data-tooltip={FILTER_LABELS[memo.type]}
         />
-        <span className={`memo-content ${memo.done ? 'line-through' : ''}`}>
-          {memo.content}
-        </span>
+        {memo.type === 'image' && imageSrc ? (
+          <img className="memo-image" src={imageSrc} alt={memo.content} />
+        ) : (
+          <span className={`memo-content ${memo.done ? 'line-through' : ''}`}>
+            {memo.content}
+          </span>
+        )}
       </div>
 
       <div className="memo-meta">
@@ -301,6 +319,13 @@ function MemoItem({
                 <img className="action-icon" src={memo.done ? imgUndo : imgCheck} alt={memo.done ? '撤销' : '完成'} />
               </button>
             )}
+            <button
+              className="action-btn"
+              data-tooltip="复制"
+              onClick={handleCopy}
+            >
+              <img className="action-icon" src={imgCopy} alt="复制" />
+            </button>
             <button
               className="action-btn"
               data-tooltip={memo.pinned ? '取消置顶' : '置顶'}

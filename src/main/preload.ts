@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('memoAPI', {
   delete: (id: string) => ipcRenderer.invoke('memo:delete', id),
   togglePin: (id: string) => ipcRenderer.invoke('memo:togglePin', id),
   toggleDone: (id: string) => ipcRenderer.invoke('memo:toggleDone', id),
+  readImage: (imagePath: string) => ipcRenderer.invoke('memo:readImage', imagePath),
 
   // 设置
   getSettings: () => ipcRenderer.invoke('settings:getAll'),
@@ -16,6 +17,8 @@ contextBridge.exposeInMainWorld('memoAPI', {
   // 剪贴板
   getClipboardEnabled: () => ipcRenderer.invoke('clipboard:getEnabled'),
   setClipboardEnabled: (enabled: boolean) => ipcRenderer.invoke('clipboard:setEnabled', enabled),
+  copyText: (text: string) => ipcRenderer.invoke('clipboard:copyText', text),
+  copyImage: (imagePath: string) => ipcRenderer.invoke('clipboard:copyImage', imagePath),
 
   // 窗口常驻
   setPinned: (pinned: boolean) => ipcRenderer.invoke('window:setPinned', pinned),
