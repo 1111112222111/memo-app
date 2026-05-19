@@ -17,7 +17,7 @@ const api = window.memoAPI;
 function applyTheme(theme: Settings['theme']) {
   const apply = (resolved: 'dark' | 'light') => {
     document.documentElement.setAttribute('data-theme', resolved);
-    api.setBgColor(resolved === 'dark' ? '#1a1a2e' : '#f5f5f8');
+    api.setBgColor(resolved === 'dark' ? '#0F1117' : '#FAFAF8');
   };
   if (theme === 'system') {
     api.getSystemTheme().then(apply);
@@ -165,43 +165,50 @@ export default function App() {
   return (
     <div className="panel">
       <div className="panel-header">
-        {clipboardOn && (
-          <span className="header-btn header-btn-active" data-tooltip="剪贴板监听中">
-            <img className="header-icon" src={imgClipboard} alt="剪贴板" />
-          </span>
-        )}
-        <button
-          className="header-btn"
-          data-tooltip={windowPinned ? '已常驻，点击取消' : '常驻面板'}
-          onClick={async () => {
-            const newPinned = await api.setPinned(!windowPinned);
-            setWindowPinned(newPinned);
-          }}
-        >
-          <img className="header-icon" src={windowPinned ? imgPinOn : imgPinOff} alt="常驻" />
-        </button>
-        <button
-          className="header-btn"
-          data-tooltip="设置"
-          onClick={() => setShowSettings(true)}
-        >
-          <img className="header-icon" src={imgSettings} alt="设置" />
-        </button>
+        <div className="panel-header-left">
+          <span className="header-title">极简便签</span>
+          {clipboardOn && (
+            <span className="header-btn header-btn-active" data-tooltip="剪贴板监听中">
+              <img className="header-icon" src={imgClipboard} alt="剪贴板" />
+            </span>
+          )}
+        </div>
+        <div className="header-actions">
+          <button
+            className={windowPinned ? 'header-btn header-btn-pin' : 'header-btn'}
+            data-tooltip={windowPinned ? '已常驻，点击取消' : '常驻面板'}
+            onClick={async () => {
+              const newPinned = await api.setPinned(!windowPinned);
+              setWindowPinned(newPinned);
+            }}
+          >
+            <img className="header-icon" src={windowPinned ? imgPinOn : imgPinOff} alt="常驻" />
+          </button>
+          <button
+            className="header-btn"
+            data-tooltip="设置"
+            onClick={() => setShowSettings(true)}
+          >
+            <img className="header-icon" src={imgSettings} alt="设置" />
+          </button>
+        </div>
       </div>
 
       <div className="panel-input-area">
-        <input
-          ref={inputRef}
-          className="panel-input"
-          placeholder={searchMode ? '搜索已有记录...' : '记点什么...'}
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          autoFocus
-        />
+        <div className="input-wrapper">
+          <input
+            ref={inputRef}
+            className="panel-input"
+            placeholder={searchMode ? '搜索已有记录...' : '记点什么...'}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            autoFocus
+          />
+        </div>
         {searchMode && (
           <div className="search-hint">
-            Enter=新建 &nbsp;|&nbsp; 匹配 {filteredMemos.length} 条
+            <kbd>Enter</kbd> 新建 · 匹配 {filteredMemos.length} 条
           </div>
         )}
       </div>
@@ -220,12 +227,21 @@ export default function App() {
 
       <div className="panel-list">
         {filteredMemos.length === 0 ? (
-          <div className="empty-hint">
-            {filter === 'clipboard'
-              ? '暂无内容，复制内容后自动记录'
-              : filter === 'image'
-              ? '暂无图片，复制图片后自动记录'
-              : '暂无记录，输入内容后按 Enter 保存'}
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              {filter === 'clipboard' ? '📋' : filter === 'image' ? '🖼' : filter === 'todo' ? '✅' : filter === 'link' ? '🔗' : '✍'}
+            </div>
+            <div className="empty-state-text">
+              {filter === 'clipboard'
+                ? <><strong>复制</strong>内容后自动记录</>
+                : filter === 'image'
+                ? <><strong>复制图片</strong>后自动记录</>
+                : filter === 'todo'
+                ? <>输入<strong>待办事项</strong>后保存</>
+                : filter === 'link'
+                ? <>粘贴<strong>网址</strong>后自动识别</>
+                : <>输入后 <strong>Enter</strong> 保存</>}
+            </div>
           </div>
         ) : (
           filteredMemos.map(memo => (
