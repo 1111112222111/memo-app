@@ -107,6 +107,15 @@ export class StoreService {
     return true;
   }
 
+  deleteMultiple(ids: string[]): number {
+    const idSet = new Set(ids);
+    const before = this.memos.length;
+    this.memos = this.memos.filter(m => !idSet.has(m.id));
+    const deleted = before - this.memos.length;
+    if (deleted > 0) this.scheduleSave();
+    return deleted;
+  }
+
   togglePin(id: string): Memo | null {
     const memo = this.memos.find(m => m.id === id);
     if (!memo) return null;

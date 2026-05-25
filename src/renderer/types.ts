@@ -7,6 +7,7 @@ declare global {
       add: (content: string, type?: string) => Promise<Memo>;
       update: (id: string, updates: Partial<Memo>) => Promise<Memo | null>;
       delete: (id: string) => Promise<boolean>;
+      deleteMultiple: (ids: string[]) => Promise<number>;
       togglePin: (id: string) => Promise<Memo | null>;
       toggleDone: (id: string) => Promise<Memo | null>;
       readImage: (imagePath: string) => Promise<string | null>;

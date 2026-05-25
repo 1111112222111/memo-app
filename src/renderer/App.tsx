@@ -186,6 +186,7 @@ export default function App() {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [clipboardOn, setClipboardOn] = useState(false);
   const [windowPinned, setWindowPinned] = useState(false);
+  const [tabMenu, setTabMenu] = useState<{ filter: FilterType; x: number; y: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -268,7 +269,28 @@ export default function App() {
     if (updated) setMemos(prev => prev.map(m => m.id === id ? updated : m));
   }, []);
 
+  const handleClearFilter = useCallback(async (f: FilterType) => {
+    setTabMenu(null);
+    const ids = memos
+      .filter(m => (f === 'all' || m.type === f) && !m.pinned && m.type !== 'runner')
+      .map(m => m.id);
+    if (ids.length > 0) {
+      await api.deleteMultiple(ids);
+      setMemos(prev => prev.filter(m => !ids.includes(m.id)));
+    }
+  }, [memos]);
+
+  useEffect(() => {
+    if (!tabMenu) return;
+    const close = () => setTabMenu(null);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('click', close); document.removeEventListener('keydown', onKey); };
+  }, [tabMenu]);
+
   const filteredMemos = memos
+    .filter(m => m.type !== 'runner')
     .filter(m => {
       if (filter !== 'all') return m.type === filter;
       if (searchMode && input.trim()) {
@@ -349,15 +371,32 @@ export default function App() {
       </div>
 
       <div className="panel-tabs">
-        {filters.map(f => (
-          <button
-            key={f}
-            className={`tab ${filter === f ? 'tab-active' : ''}`}
-            onClick={() => { setFilter(f); setSearchMode(false); setInput(''); }}
-          >
-            {FILTER_LABELS[f]}
-          </button>
-        ))}
+        {filters.map(f => {
+          const unpinnedCount = memos.filter(m => (f === 'all' || m.type === f) && !m.pinned && m.type !== 'runner').length;
+          return (
+            <button
+              key={f}
+              className={`tab ${filter === f ? 'tab-active' : ''}`}
+              onClick={() => { setFilter(f); setSearchMode(false); setInput(''); }}
+              onContextMenu={e => {
+                e.preventDefault();
+                setTabMenu({ filter: f, x: e.clientX, y: e.clientY });
+              }}
+            >
+              {FILTER_LABELS[f]}
+              {tabMenu?.filter === f && (
+                <div className="tab-context-menu" style={{ left: tabMenu.x, top: tabMenu.y }}>
+                  <button
+                    className="tab-context-menu-item"
+                    onClick={e => { e.stopPropagation(); handleClearFilter(f); }}
+                  >
+                    清空 {unpinnedCount} 条未置顶记录
+                  </button>
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="panel-list">
@@ -469,7 +508,7 @@ function MemoItem({
     runner: 'var(--accent)',
   };
 
-  const types: Memo['type'][] = ['link', 'todo', 'text', 'clipboard', 'image', 'runner'];
+  const types: Memo['type'][] = ['link', 'todo', 'text', 'clipboard', 'image'];
 
   const hasTitle = !!memo.title;
   const isLink = memo.type === 'link';

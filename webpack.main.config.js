@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 
@@ -24,6 +25,13 @@ module.exports = [
       path: path.resolve(__dirname, 'dist', 'main'),
       filename: 'main.js',
     },
+    plugins: [
+      new CopyPlugin({
+        patterns: [
+          { from: 'src/main/tray-icon.png', to: 'tray-icon.png' },
+        ],
+      }),
+    ],
     node: {
       __dirname: false,
       __filename: false,

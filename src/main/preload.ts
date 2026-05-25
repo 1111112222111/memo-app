@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('memoAPI', {
   add: (content: string, type?: string) => ipcRenderer.invoke('memo:add', content, type),
   update: (id: string, updates: any) => ipcRenderer.invoke('memo:update', id, updates),
   delete: (id: string) => ipcRenderer.invoke('memo:delete', id),
+  deleteMultiple: (ids: string[]) => ipcRenderer.invoke('memo:deleteMultiple', ids),
   togglePin: (id: string) => ipcRenderer.invoke('memo:togglePin', id),
   toggleDone: (id: string) => ipcRenderer.invoke('memo:toggleDone', id),
   readImage: (imagePath: string) => ipcRenderer.invoke('memo:readImage', imagePath),

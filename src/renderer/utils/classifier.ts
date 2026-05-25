@@ -50,7 +50,6 @@ export const FILTER_LABELS: Record<string, string> = {
   text: '文字',
   clipboard: '剪贴板',
   image: '图片',
-  runner: '运行',
 };
 
 export function formatTime(timestamp: number): string {

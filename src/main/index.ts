@@ -131,6 +131,7 @@ app.whenReady().then(() => {
     });
     ipcMain.handle('memo:update', (_e: any, id: string, updates: any) => storeService.update(id, updates));
     ipcMain.handle('memo:delete', (_e: any, id: string) => storeService.delete(id));
+    ipcMain.handle('memo:deleteMultiple', (_e: any, ids: string[]) => storeService.deleteMultiple(ids));
     ipcMain.handle('memo:togglePin', (_e: any, id: string) => storeService.togglePin(id));
     ipcMain.handle('memo:toggleDone', (_e: any, id: string) => storeService.toggleDone(id));
 
