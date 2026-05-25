@@ -19,6 +19,7 @@ export class WindowManager {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
     this.window = new BrowserWindow({
+      icon: path.join(__dirname, '..', '..', 'icon.png'),
       width: PANEL_WIDTH,
       height: PANEL_HEIGHT,
       x: screenWidth - PANEL_WIDTH - EDGE_MARGIN,

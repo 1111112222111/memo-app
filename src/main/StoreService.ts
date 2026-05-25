@@ -5,8 +5,10 @@ const { app } = require('electron');
 interface Memo {
   id: string;
   content: string;
-  type: 'link' | 'todo' | 'text' | 'clipboard' | 'image';
+  type: 'link' | 'todo' | 'text' | 'clipboard' | 'image' | 'runner';
   imagePath?: string;
+  targets?: string[];
+  title?: string;
   createdAt: number;
   pinned: boolean;
   done: boolean;

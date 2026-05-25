@@ -133,7 +133,7 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
         {/* 剪贴板 */}
         <div className="settings-group">
           <div className="settings-group-label">实验功能</div>
-          <div className="settings-row">
+          <div className="settings-row" style={{ marginBottom: 8 }}>
             <div>
               <div className="settings-row-label">剪贴板监听</div>
               <div className="settings-row-desc">自动记录复制的内容</div>
@@ -141,6 +141,16 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
             <button
               className={`toggle-switch ${settings.clipboardEnabled ? 'active' : ''}`}
               onClick={() => updateSetting({ clipboardEnabled: !settings.clipboardEnabled })}
+            />
+          </div>
+          <div className="settings-row">
+            <div>
+              <div className="settings-row-label">开机自启动</div>
+              <div className="settings-row-desc">系统启动时自动运行</div>
+            </div>
+            <button
+              className={`toggle-switch ${settings.autoStart ? 'active' : ''}`}
+              onClick={() => updateSetting({ autoStart: !settings.autoStart })}
             />
           </div>
         </div>

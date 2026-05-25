@@ -9,11 +9,27 @@ const TODO_VERBS = [
   '填', '跑', '拿', '带', '换', '关', '开', '取消', '设置',
 ];
 
+// URL 检测
+const URL_START = /^(https?:\/\/|ftp:\/\/|www\.[a-zA-Z0-9])/i;
+const CONTAINS_URL = /https?:\/\/\S+|www\.[a-zA-Z0-9][^\s]*\.[a-z]{2,}/i;
+
+// 文件路径检测：Windows / UNC / Unix 绝对路径
+const FILE_PATH = /^([A-Za-z]:[\\\/]|\\\\|~[\\\/]|\/[^\/])/;
+
+export function isFilePath(text: string): boolean {
+  return FILE_PATH.test(text.trim());
+}
+
 export function classifyContent(content: string): Memo['type'] {
   const trimmed = content.trim();
 
   // URL 检测
-  if (/^https?:\/\//i.test(trimmed)) {
+  if (URL_START.test(trimmed) || CONTAINS_URL.test(trimmed)) {
+    return 'link';
+  }
+
+  // 文件路径检测
+  if (FILE_PATH.test(trimmed)) {
     return 'link';
   }
 
@@ -34,6 +50,7 @@ export const FILTER_LABELS: Record<string, string> = {
   text: '文字',
   clipboard: '剪贴板',
   image: '图片',
+  runner: '运行',
 };
 
 export function formatTime(timestamp: number): string {

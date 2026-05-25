@@ -11,6 +11,7 @@ export class ClipboardService {
   private onNewText: ((text: string) => void) | null = null;
   private onNewImage: ((imagePath: string) => void) | null = null;
   private imageDir: string;
+  private skipCount: number = 0;
 
   constructor(imageDir: string) {
     this.imageDir = imageDir;
@@ -62,6 +63,15 @@ export class ClipboardService {
 
   private check() {
     try {
+      // 跳过本轮（内部复制触发）
+      if (this.skipCount > 0) {
+        this.skipCount--;
+        this.lastText = clipboard.readText() || '';
+        const img = clipboard.readImage();
+        if (!img.isEmpty()) this.lastImageHash = this.hashBuffer(img.toPNG());
+        return;
+      }
+
       // 检测图片（优先，因为复制图片时剪贴板也可能有文本）
       const image = clipboard.readImage();
       if (!image.isEmpty()) {
@@ -91,6 +101,10 @@ export class ClipboardService {
 
   private hashBuffer(buf: Buffer): string {
     return crypto.createHash('md5').update(buf).digest('hex');
+  }
+
+  skipNext() {
+    this.skipCount++;
   }
 
   destroy() {

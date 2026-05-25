@@ -6,12 +6,14 @@ export interface Settings {
   theme: 'dark' | 'light' | 'system';
   hotkey: string;
   clipboardEnabled: boolean;
+  autoStart: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   hotkey: 'CommandOrControl+Shift+M',
   clipboardEnabled: false,
+  autoStart: false,
 };
 
 export class SettingsService {
